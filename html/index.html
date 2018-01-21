@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meeting Index Page</title>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+    <div id="MyAjax"></div>
+    <button type="button" id="load">点击发送</button>
+    <script>
+            $(function () {
+                $('#load').click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "http://127.0.0.1:5000/api/v1.0/AjaxTest",
+                    data: JSON.stringify({
+                        "user" : {
+                            "username": "admin",
+                            "send_time": "datetime"
+                        },
+                        "message": "send_message",
+                        "allow_people": "all",
+                        "meeting_room": "meet_name"
+                    }),
+                    crossDomain: true,
+                    contentType: "application/json; charset=UTF-8",
+                    success : function (data) {
+                        if (data['status_code'] == 200) { alert("success"); }
+                        else { alert('not fail'); }},
+                    error: function () {
+                       alert('发送失败');
+                    }
+                })
+
+            })
+            })
+
+    </script>
+
+</body>
+</html>
