@@ -1,66 +1,56 @@
-from flask import request, jsonify, make_response
+# from flask import request, jsonify, make_response
 from . import auth_blueprint
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, reqparse
 from ..main.models import User
 from ext import db
 
 auth_api = Api(auth_blueprint)
 
-
 """
+register format
 {
-	"data": {
-		"username": "123456",
-		"password": "123456"
-	}
+	
+	"username": "",
+	"password": "",
+    "phone": "",
+    "company": ""
 }
 """
 
-
-def check_data_format(json):
-    """
-    format is right return data
-    format is error return a message: "格式不正确"
-    """
-    pass
+parser = reqparse.RequestParser()
+parser.add_argument('username', type=str, help="username must be str")
+parser.add_argument('password', type=str, help="password must be str")
+parser.add_argument('phone', type=str, help="username must be str")
+parser.add_argument('company', type=str, help="username must be str")
 
 
 class Login(Resource):
     def post(self):
-        if not 'data' in request.json and not request.json['data']['username'] and not request.json['username']:
-            return make_response(jsonify({"message": "格式错误"}), 400)
-
+        args = parser.parse_args()
+        user = User.query.filter_by(username=args['username']).first()
+        if user and user.verify_password(args['password']):
+            return {"message": "登陆成功"}, 200
+        if user and not user.verify_password(args['password']):
+            return {"message": "密码错误"}, 409
         else:
-            check_data_format(request.json['data'])
-            # check_data_format()
-            # user = User(username=request.json['data']['username'],
-            #            password=request.json['data']['password'],)
-            # 此处存储格式正确和不为空的
-
-            # login user
-            return make_response(jsonify({"message": "注册成功"}), 200)
+            return {"message": "请先注册"}, 200
 
 
 class Register(Resource):
     def post(self):
-        if 'data' not in request.json or not request.json['data']['username'] or not request.json['data']['password']:
-            return make_response(jsonify({"message": "格式错误"}), 400)
-
-        else:
-            check_data_format(request.json['data'])
-            if User.query.filter_by(username=request.json['data']['username']).first():
-                return make_response(jsonify({"message": "该用户名已存在, 请修改您的用户名"}), 409)
-
-            if request.json['data']['phone'] and User.query.filter_by(phone=request.json['data']['phone']).first():
-                return make_response(jsonify({"message": "该号码已存在,请更换号码"}), 409)
-
-            user = User(username=request.json['data']['username'],
-                        password=request.json['data']['password'],
-                        phone=request.json['data']['phone'],
-                        company=request.json['data']['company'],)
+        args = parser.parse_args()
+        try:
+            user = User(
+                username=args['username'],
+                password=args['password'],
+                phone=args['phone'],
+                company=args['company'])
             db.session.add(user)
             db.session.commit()
-            return make_response(jsonify({"message": "注册成功"}), 200)
+        except:
+            return {"message": "用户名已被使用请更换用户名"}, 409
+
+        return {"message": "注册成功"}, 200
 
 
 auth_api.add_resource(Login, '/login')

@@ -20,6 +20,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(225))
     phone = db.Column(db.String(15), unique=True)
     company = db.Column(db.String(50))
+    meets = db.relationship('Meet', backref='users')
+    create_time = db.Column(db.DateTime())
 
     # ---password hash
     @property
@@ -32,7 +34,12 @@ class User(db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
     # ---password hash
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+        self.create_time = datetime.now()
 
     def __str__(self):
         return "<User: {} id: {}>".format(self.username, self.id)
