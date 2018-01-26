@@ -17,6 +17,7 @@ class User(db.Model):
     """
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
+    head_portrait = db.Column(db.String(128))
     username = db.Column(db.String(25), unique=True)
     password = db.Column(db.String(25))
     password_hash = db.Column(db.String(225))
@@ -67,12 +68,31 @@ class User(db.Model):
 
 
 class Meet(db.Model):
+    """
+    会议的信息
+    """
     __tablename__ = 'meet'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(225))
     password = db.Column(db.String(20))
+    password_hash = db.Column(db.String(225))
+    meet_portrait = db.Column(db.String(128))
     create_time = db.Column(db.DateTime())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    # ---password hash
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attributes')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    # ---password hash
 
     def __init__(self, **kwargs):
         super(Meet, self).__init__(**kwargs)
@@ -83,3 +103,11 @@ class Meet(db.Model):
 
     def __repr__(self):
         return "<Meet {}> created in {}".format(self.name, self.create_time)
+
+
+class ChatRoom(db.Model):
+    """
+    会议的聊天室
+    """
+    __tablename__ = 'chatroom'
+    pass

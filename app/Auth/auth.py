@@ -1,4 +1,3 @@
-# from flask import request, jsonify, make_response
 from . import auth_blueprint
 from flask_restful import Resource, Api, reqparse
 from ..main.models import User

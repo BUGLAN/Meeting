@@ -153,7 +153,7 @@ class Chat(Resource):
         self.parser.add_argument('meeting_room', type=str, help="allow_people must be str type")
         self.user_parser = reqparse.RequestParser()
         self.user_parser.add_argument('username', type=str, help="username must be str type", location='user')
-        self.user_parser.add_argument('send_time', type=str, help="send_time must be str type",  location='user')
+        self.user_parser.add_argument('send_time', type=str, help="send_time must be str type", location='user')
         super(Chat, self).__init__()
 
     decorators = [auth.login_required]
@@ -174,6 +174,17 @@ class Chat(Resource):
         else:
             return make_response(jsonify({"error": "用户名错误"}), 400)
             #  聊天和会议的api 由这个提供
+
+
+class User(Resource):
+    def __init__(self):
+        pass
+
+    def get(self):
+        pass
+
+    def post(self):
+        pass
 
 
 main_api.add_resource(MeetAdmin, '/MeetAdmin')
