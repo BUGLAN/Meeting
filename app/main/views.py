@@ -2,13 +2,37 @@ from . import main_blueprint
 from flask_restful import Resource, Api, reqparse, fields
 from .models import Meet
 from ext import db
-from flask import jsonify, request, make_response
+from flask import jsonify, request, make_response, g
 from .models import User
 from flask_cors import CORS
 from datetime import datetime
+from flask_httpauth import HTTPBasicAuth
+
 
 main_api = Api(main_blueprint)
 CORS(main_blueprint, resources=r'/*')
+auth = HTTPBasicAuth()
+
+"""
+认证 Basic Auth
+两种方式
+1. username:password
+2. token:unused 
+# unused 占位符
+"""
+
+
+@auth.verify_password
+def verify_password(username_or_token, password):
+    user = User.verify_auth_token(username_or_token)
+    if not user:
+        user = User.query.filter_by(username=username_or_token).first()
+        if not user or not user.verify_password(password):
+            return False
+    g.user = user
+    return True
+
+
 """
 res.headers['Access-Control-Allow-Origin'] = '*'
 res.headers['Access-Control-Allow-Methods'] = 'POST,GET,OPTIONS'
@@ -71,7 +95,16 @@ class MeetAdmin(Resource):
     }
     """
 
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('data', type=dict, help="dict must be dict type")
+        self.parser.add_argument('operation', type=str, help="operation must be str type")
+        super(MeetAdmin, self).__init__()
+
+    decorators = [auth.login_required]
+
     def post(self):
+        args = self.parser.parse_args()
         if 'data' and 'operation' not in request.json:
             return make_response(jsonify({"error": "格式错误"}), 400)
         elif 'name' and 'allow_people' and 'number' not in request.json['data']:
@@ -105,6 +138,16 @@ class Chat(Resource):
     }
     """
 
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('user', type=dict, help="user must be dict type")
+        self.parser.add_argument('message', type=str, help="message must be str type")
+        self.parser.add_argument('allow_people', type=str, help="allow_people must be str type")
+        self.parser.add_argument('meeting_room', type=str, help="allow_people must be str type")
+        super(Chat, self).__init__()
+
+    decorators = [auth.login_required]
+
     def post(self):
         if 'user' and 'message' and 'meeting_room' not in request.json:
             return make_response(jsonify({"error": "格式错误"}), 400)
@@ -126,46 +169,7 @@ class Chat(Resource):
             #  聊天和会议的api 由这个提供
 
 
-# class UserRegister(Resource):
-#     """
-#     user register api
-#     format : {
-#         "username": "",
-#         "password": "",
-#         "phone"; "",
-#         "company": ""
-#     }
-#     # create_time 无需定义实例化的时候会有__init__()自动转换
-#     """
-#
-#     def post(self):
-#         args = register_parser.parse_args()
-#         user = User(
-#             username=args['username'],
-#             password=args['password'],
-#             phone=args['phone'],
-#             company=args['phone']
-#         )
-#         db.session.add(user)
-#         db.session.commit()
-#         return "用户注册成功"
-#
-#
-# class UserLogin(Resource):
-#     """
-#     user login api
-#     format: {
-#         "username"; "",
-#         "password": ""
-#     }
-#     """
-#
-#     def post(self):
-#         pass
-
-
 main_api.add_resource(MeetAdmin, '/MeetAdmin')
 main_api.add_resource(Chat, '/ChatApi')
 main_api.add_resource(AjaxTest, '/AjaxTest')
 main_api.add_resource(AxiosTest, '/AxiosTest')
-# main_api.add_resource(UserRegister, '/register')

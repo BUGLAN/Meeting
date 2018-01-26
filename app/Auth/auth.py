@@ -29,7 +29,7 @@ class Login(Resource):
         args = parser.parse_args()
         user = User.query.filter_by(username=args['username']).first()
         if user and user.verify_password(args['password']):
-            return {"message": "登陆成功"}, 200
+            return {"token": user.generate_auth_token().decode('ascii')}, 200
         if user and not user.verify_password(args['password']):
             return {"message": "密码错误"}, 409
         else:
@@ -53,5 +53,11 @@ class Register(Resource):
         return {"message": "注册成功"}, 200
 
 
+class Logout(Resource):
+    def post(self):
+        pass
+
+
 auth_api.add_resource(Login, '/login')
 auth_api.add_resource(Register, '/register')
+auth_api.add_resource(Logout, '/logout')
