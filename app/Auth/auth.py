@@ -48,7 +48,7 @@ class Register(Resource):
             db.session.add(user)
             db.session.commit()
         except:
-            return {"message": "用户名已被使用请更换用户名"}, 409
+            return {"message": "用户名或电话已被使用"}, 409
 
         return {"message": "注册成功"}, 200
 

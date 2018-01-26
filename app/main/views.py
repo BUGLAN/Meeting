@@ -8,7 +8,6 @@ from flask_cors import CORS
 from datetime import datetime
 from flask_httpauth import HTTPBasicAuth
 
-
 main_api = Api(main_blueprint)
 CORS(main_blueprint, resources=r'/*')
 auth = HTTPBasicAuth()
@@ -31,6 +30,11 @@ def verify_password(username_or_token, password):
             return False
     g.user = user
     return True
+
+
+@auth.error_handler
+def unauthorized():
+    return make_response(jsonify({"error": "Unauthorized"}), 403)
 
 
 """
@@ -99,27 +103,30 @@ class MeetAdmin(Resource):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('data', type=dict, help="dict must be dict type")
         self.parser.add_argument('operation', type=str, help="operation must be str type")
+        self.data_parser = reqparse.RequestParser()
+        self.data_parser.add_argument('name', type=str, help="name must be str type", location='data')
+        self.data_parser.add_argument('create_time', type=str, help="create_time must be str", location='data')
+        self.data_parser.add_argument('allow_people', type=str, help="allow_people must be str type", location='data')
+        self.data_parser.add_argument('number', type=int, help="number must be int type", location='data')
         super(MeetAdmin, self).__init__()
 
     decorators = [auth.login_required]
 
     def post(self):
         args = self.parser.parse_args()
-        if 'data' and 'operation' not in request.json:
-            return make_response(jsonify({"error": "格式错误"}), 400)
-        elif 'name' and 'allow_people' and 'number' not in request.json['data']:
-            return make_response(jsonify({"error": "data 格式错误"}), 400)
-        elif request.json['operation'] not in ['new', 'delete', 'change']:
-            return make_response(jsonify({"error": "operation 格式错误"}), 400)
-        elif request.json['operation'] == 'new':
-            meet = Meet(name=request.json['data']['name'], password='123456')
+        data_args = self.data_parser.parse_args(req=args)
+        if args['operation'] == 'new':
+            meet = Meet(
+                name=data_args['name'],
+                password='123456'
+            )
             db.session.add(meet)
             db.session.commit()
             return jsonify({"id": meet.id, "name": meet.name, "password": meet.password,
-                            'create_time': meet.create_time})
-        elif request.json['operation'] == 'delete':
+                            'create_time': meet.create_time.strftime('%Y-%m-%d %H:%M')})
+        elif args['operation'] == 'delete':
             return "delete Meeting"
-        elif request.json['operation'] == 'change':
+        elif args['operation'] == 'change':
             return "change Meeting"
         else:
             return make_response(jsonify({"error": "格式错误"}), 400)
@@ -144,17 +151,17 @@ class Chat(Resource):
         self.parser.add_argument('message', type=str, help="message must be str type")
         self.parser.add_argument('allow_people', type=str, help="allow_people must be str type")
         self.parser.add_argument('meeting_room', type=str, help="allow_people must be str type")
+        self.user_parser = reqparse.RequestParser()
+        self.user_parser.add_argument('username', type=str, help="username must be str type", location='user')
+        self.user_parser.add_argument('send_time', type=str, help="send_time must be str type",  location='user')
         super(Chat, self).__init__()
 
     decorators = [auth.login_required]
 
     def post(self):
-        if 'user' and 'message' and 'meeting_room' not in request.json:
-            return make_response(jsonify({"error": "格式错误"}), 400)
-        # user = request.json['user']['name']
-        if request.json['user']['username'] is None:
-            return make_response(jsonify({"error": "格式错误"}), 400)
-        user = User.query.filter(User.username == request.json['user']['username']).first()
+        args = self.parser.parse_args()
+        user_args = self.user_parser.parse_args(req=args)
+        user = User.query.filter(User.username == user_args['username']).first()
         if user:
             response = {
                 "user": {
@@ -162,7 +169,7 @@ class Chat(Resource):
                 },
                 "message": request.json['message'],
             }
-            response['user']['send_time'] = datetime.now().strftime('%Y-%m-%d %H:%M')
+            user_args['send_time'] = datetime.now().strftime('%Y-%m-%d %H:%M')
             return make_response(jsonify(response), 200)
         else:
             return make_response(jsonify({"error": "用户名错误"}), 400)
