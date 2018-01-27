@@ -69,7 +69,7 @@ class User(db.Model):
 
 class Meet(db.Model):
     """
-    会议的信息
+    会议室的信息
     """
     __tablename__ = 'meet'
     id = db.Column(db.Integer, primary_key=True)
@@ -105,9 +105,23 @@ class Meet(db.Model):
         return "<Meet {}> created in {}".format(self.name, self.create_time)
 
 
-class ChatRoom(db.Model):
+class ChatMessage(db.Model):
     """
-    会议的聊天室
+    记录聊天的message
     """
-    __tablename__ = 'chatroom'
-    pass
+    __tablename__ = 'chat_message'
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    meet_id = db.Column(db.Integer, db.ForeignKey('meet.id'))
+    create_time = db.Column(db.DateTime())
+
+    def __init__(self, **kwargs):
+        super(ChatMessage, self).__init__(**kwargs)
+        self.create_time = datetime.now()
+
+    def __str__(self):
+        return "<ChatRoom {}>".format(Meet.query.get(self.meet_id).name)
+
+    def __repr__(self):
+        return "<ChatRoom {}>".format(Meet.query.get(self.meet_id).name)

@@ -1,7 +1,7 @@
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Server, Manager
 from run import app
-from app.main.models import Meet, User, db
+from app.main.models import Meet, User, db, ChatMessage
 
 
 migrate = Migrate(app, db)
@@ -12,7 +12,7 @@ manager.add_command('db', MigrateCommand)
 
 @manager.shell
 def manager_shell_context():
-    return dict(db=db, app=app, User=User, Meet=Meet)
+    return dict(db=db, app=app, User=User, Meet=Meet, ChatMessage=ChatMessage)
 
 
 if __name__ == '__main__':

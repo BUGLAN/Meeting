@@ -1,9 +1,8 @@
 from . import main_blueprint
-from flask_restful import Resource, Api, reqparse, fields
-from .models import Meet
+from flask_restful import Resource, Api, reqparse, fields, marshal_with
 from ext import db
 from flask import jsonify, request, make_response, g
-from .models import User
+from .models import User, Meet, ChatMessage
 from flask_cors import CORS
 from datetime import datetime
 from flask_httpauth import HTTPBasicAuth
@@ -122,7 +121,7 @@ class MeetAdmin(Resource):
             )
             db.session.add(meet)
             db.session.commit()
-            return jsonify({"id": meet.id, "name": meet.name, "password": meet.password,
+            return jsonify({"id": meet.id, "name": meet.name, "username": g.user.username,
                             'create_time': meet.create_time.strftime('%Y-%m-%d %H:%M')})
         elif args['operation'] == 'delete':
             return "delete Meeting"
@@ -132,7 +131,7 @@ class MeetAdmin(Resource):
             return make_response(jsonify({"error": "格式错误"}), 400)
 
 
-class Chat(Resource):
+class ChatApi(Resource):
     """
     {
         "user" : {
@@ -150,11 +149,11 @@ class Chat(Resource):
         self.parser.add_argument('user', type=dict, help="user must be dict type")
         self.parser.add_argument('message', type=str, help="message must be str type")
         self.parser.add_argument('allow_people', type=str, help="allow_people must be str type")
-        self.parser.add_argument('meeting_room', type=str, help="allow_people must be str type")
+        self.parser.add_argument('meet_name', type=str, help="allow_people must be str type")
         self.user_parser = reqparse.RequestParser()
         self.user_parser.add_argument('username', type=str, help="username must be str type", location='user')
         self.user_parser.add_argument('send_time', type=str, help="send_time must be str type", location='user')
-        super(Chat, self).__init__()
+        super(ChatApi, self).__init__()
 
     decorators = [auth.login_required]
 
@@ -163,6 +162,17 @@ class Chat(Resource):
         user_args = self.user_parser.parse_args(req=args)
         user = User.query.filter(User.username == user_args['username']).first()
         if user:
+            # 将 message 存入到 ChatMessage 表中
+            try:
+                chat_msg = ChatMessage(
+                    message=args['message'],
+                    user_id=user.id,
+                    meet_id=Meet.query.filter_by(name=args['meet_name']).first().id
+                )
+                db.session.add(chat_msg)
+                db.session.commit()
+            except KeyError:
+                return {"message": "no this meeting_room"}
             response = {
                 "user": {
                     "username": user.username,
@@ -176,18 +186,68 @@ class Chat(Resource):
             #  聊天和会议的api 由这个提供
 
 
-class User(Resource):
+meet_fields = {
+    'id': fields.Integer,
+    'name': fields.String,
+    'meet_portrait': fields.String,
+}
+
+
+class Meets(Resource):
+    """
+    会议搜索查询
+    模糊搜索
+    {
+        meet_name:
+    }
+    """
+
     def __init__(self):
-        pass
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('meet_name', type=str, help="meet_name must be str type", required=True)
+        super(Meets, self).__init__()
 
-    def get(self):
-        pass
-
+    @marshal_with(meet_fields)
     def post(self):
-        pass
+        args = self.parser.parse_args()
+        meets = Meet.query.filter(Meet.name.like('%{}%'.format(args['meet_name']))).all()
+        return meets
+
+
+user_fields = {
+    'id': fields.Integer,
+    'head_portrait': fields.String,
+    'username': fields.String,
+    'phone': fields.String,
+    'company': fields.String
+}
+
+
+class Users(Resource):
+    """
+    用户搜索查询
+    模糊搜索
+    need fields
+    {
+        username:
+    }
+    """
+
+    def __init__(self):
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('username', type=str, help="username must be str type", required=True)
+        super(Users, self).__init__()
+
+    @marshal_with(user_fields)
+    def post(self):
+        args = self.parser.parse_args()
+        users = User.query.filter(User.username.like('%{}%'.format(args['username']))).all()
+        return users
 
 
 main_api.add_resource(MeetAdmin, '/MeetAdmin')
-main_api.add_resource(Chat, '/ChatApi')
+main_api.add_resource(ChatApi, '/ChatApi')
 main_api.add_resource(AjaxTest, '/AjaxTest')
 main_api.add_resource(AxiosTest, '/AxiosTest')
+main_api.add_resource(Meets, '/meets')
+main_api.add_resource(Users, '/users')
