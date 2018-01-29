@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>登录</title>
+</head>
+<body>
+    <form action="">
+    <p>用户名: <input type="text" id="username"></p>
+    <p>密码: <input type="password" id="password"></p>
+    <p><input type="button" onclick="login_form()" value="submit"></p>
+    </form>
+    <script>
+    function login_form() {
+        var data = {
+            "username": document.getElementById('username').value,
+            "password": document.getElementById('password').value
+        }
+        axios.post("http://127.0.0.1:5000/api/v1.0/login", data)
+        .then(function (response) {
+            console.log(response.data);
+        })
+        .catch(function (error) {
+            console.log(error.data);
+            console.log('error')
+        })
+    }
+    </script>
+</body>
+</html>

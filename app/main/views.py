@@ -3,12 +3,10 @@ from flask_restful import Resource, Api, reqparse, fields, marshal_with
 from ext import db
 from flask import jsonify, request, make_response, g
 from .models import User, Meet, ChatMessage
-from flask_cors import CORS
 from datetime import datetime
 from flask_httpauth import HTTPBasicAuth
 
 main_api = Api(main_blueprint)
-CORS(main_blueprint, resources=r'/*')
 auth = HTTPBasicAuth()
 
 """
@@ -85,7 +83,6 @@ class MeetAdmin(Resource):
     # user -> meet
     # OneToMany
     # login_require
-    # post a
     {
         "data" :{
             "name": "meeting name",

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>注册</title>
+</head>
+<body>
+<form action="" id="form" method="post">
+    <p>头像: <input type="text" name="head_portrait" id="head_portrait"></p>
+    <p>用户名: <input type="text" name="username" id="username"></p>
+    <p>密码: <input type="password" name="password" id="password"></p>
+    <p>确认密码: <input type="password" name="check_password" id="check_password"></p>
+    <p>电话: <input type="text" name="phone" id="phone"></p>
+    <p>公司: <input type="text" name="company" id="company"></p>
+    <p><button type="button" onclick="register_form()" >提交"</button></p>
+</form>
+<script>
+    function register_form() {
+        var data = {
+            "head_portrait": document.getElementById("head_portrait").value,
+            "username": document.getElementById("username").value,
+            "password": document.getElementById("password").value,
+            "check_password": document.getElementById("check_password").value,
+            "phone": document.getElementById("phone").value,
+            "company": document.getElementById("company").value
+        };
+        console.log(data);
+
+        axios.post("http://127.0.0.1:5000/api/v1.0/register", data)
+    .then(function (response) {
+        console.log('success');
+
+    })
+    .catch(function (error) {
+        console.log(error.data);
+    })
+    };
+
+</script>
+</body>
+</html>

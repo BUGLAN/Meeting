@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注销</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <button onclick="logout()">submit</button>
+    <script>
+        function logout() {
+            axios.post('http://127.0.0.1:5000/api/v1.0/logout')
+                .then(function (response) {
+                        console.log("退出成功")
+                })
+                .catch(function (error) {
+                    console.log("注销失败")
+                })
+        }
+    </script>
+</body>
+</html>

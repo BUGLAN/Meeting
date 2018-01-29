@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>New Meet</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<form action="">
+    <p>会议名称: <input type="text" id="meetName"></p>
+    <p>开始时间: <input type="text" id="create_time"></p>
+    <p>结束时间: <input type="text" id="end_time"></p>
+    <p>会议人员: <input type="text" id="allow_people"></p>
+    <p>人数: <input type="text" id="number"></p>
+    <p>操作 <input type="text" id="operation"></p>
+    <p><input type="button" onclick="newMeet()" value="submit"></p>
+</form>
+
+<script>
+
+
+    function newMeet() {
+        var data = {
+            "data": {
+                "name": document.getElementById('meetName').value,
+                "create_time": document.getElementById('create_time').value,
+                "end_time": document.getElementById('end_time').value,
+                "allow_people": document.getElementById('allow_people').value,
+                "number": document.getElementById('number').value
+            },
+            "operation": "new"
+        }
+        axios.post("http://127.0.0.1:5000/api/v1.0/MeetAdmin", data)
+            .then(function (response) {
+                console.log(response.data);
+                console.log('success');
+            })
+            .catch(function (error) {
+                console.log('fail');
+            })
+    }
+</script>
+</body>
+</html>

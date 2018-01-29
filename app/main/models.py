@@ -25,6 +25,7 @@ class User(db.Model):
     company = db.Column(db.String(50))
     meets = db.relationship('Meet', backref='users')
     create_time = db.Column(db.DateTime())
+    msgs = db.relationship('ChatMessage', backref='users')
 
     # ---password hash
     @property
@@ -40,7 +41,7 @@ class User(db.Model):
 
     # ---password hash
 
-    def generate_auth_token(self, expiration=60000):
+    def generate_auth_token(self, expiration=6000):
         s = Serializer(BaseConfig.SECRET_KEY, expires_in=expiration)
         return s.dumps({'id': self.id})
 
@@ -79,6 +80,7 @@ class Meet(db.Model):
     meet_portrait = db.Column(db.String(128))
     create_time = db.Column(db.DateTime())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    msgs = db.relationship('ChatMessage', backref='meets')
 
     # ---password hash
     @property
