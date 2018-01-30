@@ -20,6 +20,7 @@ register format
 parser = reqparse.RequestParser()
 parser.add_argument('username', type=str, help="username must be str")
 parser.add_argument('password', type=str, help="password must be str")
+parser.add_argument('check_password', type=str)
 parser.add_argument('phone', type=str, help="username must be str")
 parser.add_argument('company', type=str, help="username must be str")
 
@@ -43,8 +44,10 @@ class Register(Resource):
     后端验证表单数据
     check_form()
     """
+
     def post(self):
         args = parser.parse_args()
+        #  if args['password'] == args['check_password']
         try:
             user = User(
                 username=args['username'],

@@ -29,7 +29,8 @@
                 "number": document.getElementById('number').value
             },
             "operation": "new"
-        }
+        };
+        axios.defaults.headers.common['Authorization'] = "Basic eyJhbGciOiJIUzI1NiIsImlhdCI6MTUxNzI5NjQwMiwiZXhwIjoxNTE3MzAyNDAyfQ.eyJpZCI6MX0.43_3cX-KPdW8wGwJDw6x66bg6-zHCVV3QatbZCJno5Y:usuid";
         axios.post("http://127.0.0.1:5000/api/v1.0/MeetAdmin", data)
             .then(function (response) {
                 console.log(response.data);
@@ -42,3 +43,4 @@
 </script>
 </body>
 </html>
+

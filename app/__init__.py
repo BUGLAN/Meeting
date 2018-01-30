@@ -21,4 +21,8 @@ def create_app():
     def index():
         return render_template('login.html')
 
+    @app.route('/MeetAdmin')
+    def MeetAdmin():
+        return render_template('newMeet.html')
+
     return app
