@@ -39,25 +39,35 @@ class Login(Resource):
             return {"message": "请先注册"}, 200
 
 
+def check_register(args):
+    if len(args['username']) >= 6:
+        if args['password'] == args['check_password']:
+            return True
+    return False
+
+
 class Register(Resource):
     """
     后端验证表单数据
-    check_form()
+    check_register()
+    password == check_password
+    username >= 6
+    email format check
     """
 
     def post(self):
         args = parser.parse_args()
-        #  if args['password'] == args['check_password']
-        try:
-            user = User(
-                username=args['username'],
-                password=args['password'],
-                phone=args['phone'],
-                company=args['company'])
-            db.session.add(user)
-            db.session.commit()
-        except:
-            return {"message": "用户名或电话已被使用"}, 409
+        if check_register(args):
+            try:
+                user = User(
+                    username=args['username'],
+                    password=args['password'],
+                    phone=args['phone'],
+                    company=args['company'])
+                db.session.add(user)
+                db.session.commit()
+            except:
+                return {"message": "用户名或电话已被使用"}, 409
 
         return {"message": "注册成功"}, 200
 
