@@ -8,8 +8,10 @@ from flask_httpauth import HTTPBasicAuth
 import os
 from config import BaseConfig
 
+
 main_api = Api(main_blueprint)
 auth = HTTPBasicAuth()
+
 
 """
 认证 Basic Auth
@@ -345,6 +347,19 @@ class MeetDownLoadFile(Resource):
         else:
             abort(404)
 
+# @socketio.on('message')
+# def handle_message(message):
+#     print(request.json)
+#     send(message)
+#     return '1'
+#
+# @socketio.on('json')
+# def handle_json(json):
+#     print(request.json)
+#     send(json, json=True)
+#     return '1'
+
+
 
 # main_api.add_resource(AjaxTest, '/AjaxTest')
 # main_api.add_resource(AxiosTest, '/AxiosTest')
@@ -355,5 +370,7 @@ main_api.add_resource(Users, '/users')
 main_api.add_resource(HeadPortrait, '/upload_portrait')
 main_api.add_resource(MeetUploadFile, '/meet_upload_file/<string:MeetName>')
 main_api.add_resource(MeetDownLoadFile, '/meet_download_file/<string:MeetName>')
+
+
 
 
