@@ -1,6 +1,9 @@
+import os
+
 
 class BaseConfig:
     DEBUG = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@127.0.0.1:3306/meeting'
     SECRET_KEY = "YOU-NEVER-GUESS-ME"
+    UPLOAD_FOLDER = os.getcwd() + '\\file'

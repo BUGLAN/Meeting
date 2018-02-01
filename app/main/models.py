@@ -17,10 +17,11 @@ class User(db.Model):
     """
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    head_portrait = db.Column(db.String(128))
+    head_portrait = db.Column(db.String(128), default='file/head_portrait.jpg.')
     username = db.Column(db.String(25), unique=True)
     password = db.Column(db.String(25))
     password_hash = db.Column(db.String(225))
+    email = db.Column(db.String(30), unique=True)
     phone = db.Column(db.String(15), unique=True)
     company = db.Column(db.String(50))
     meets = db.relationship('Meet', backref='users')
@@ -79,6 +80,9 @@ class Meet(db.Model):
     password_hash = db.Column(db.String(225))
     meet_portrait = db.Column(db.String(128))
     create_time = db.Column(db.DateTime())
+    start_time = db.Column(db.DateTime())
+    attachment = db.Column(db.String(225))
+    end_time = db.Column(db.DateTime())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     msgs = db.relationship('ChatMessage', backref='meets')
 

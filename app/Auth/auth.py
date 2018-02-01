@@ -23,14 +23,23 @@ parser.add_argument('password', type=str, help="password must be str")
 parser.add_argument('check_password', type=str)
 parser.add_argument('phone', type=str, help="username must be str")
 parser.add_argument('company', type=str, help="username must be str")
+parser.add_argument('email', type=str)
 
 
 class Login(Resource):
+    """
+    username password
+    email password
+    login
+    """
+
     def post(self):
         args = parser.parse_args()
         user = User.query.filter_by(username=args['username']).first()
-        if user and user.verify_password(args['password']):
-            response = make_response(jsonify({"message": "user welcome"}), 200)
+        email = User.query.filter_by(email=args['email']).first()
+        phone = User.query.filter_by(phone=args['phone']).first()
+        if user or email or phone and user.verify_password(args['password']):
+            response = make_response(jsonify({"token": user.generate_auth_token().decode('ascii')}), 200)
             response.set_cookie(key='token', value=user.generate_auth_token().decode('ascii'), secure=False)
             return response
         if user and not user.verify_password(args['password']):
@@ -42,7 +51,8 @@ class Login(Resource):
 def check_register(args):
     if len(args['username']) >= 6:
         if args['password'] == args['check_password']:
-            return True
+            if '@' in args['email']:
+                return True
     return False
 
 
@@ -53,6 +63,7 @@ class Register(Resource):
     password == check_password
     username >= 6
     email format check
+    1831353087@qq.com
     """
 
     def post(self):
@@ -60,14 +71,16 @@ class Register(Resource):
         if check_register(args):
             try:
                 user = User(
+                    head_portrait=args['head_portrait'],
                     username=args['username'],
                     password=args['password'],
+                    email=args['email'],
                     phone=args['phone'],
                     company=args['company'])
                 db.session.add(user)
                 db.session.commit()
             except:
-                return {"message": "用户名或电话已被使用"}, 409
+                return {"message": "用户名或电话或已被使用"}, 409
 
         return {"message": "注册成功"}, 200
 
