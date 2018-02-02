@@ -7,6 +7,7 @@ from datetime import datetime
 from flask_httpauth import HTTPBasicAuth
 import os
 from config import BaseConfig
+from functools import wraps
 
 
 main_api = Api(main_blueprint)
@@ -36,6 +37,19 @@ def verify_password(username_or_token, password):
 @auth.error_handler
 def unauthorized():
     return make_response(jsonify({"error": "Unauthorized"}), 403)
+
+def meeter_required(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        token_header = request.headers.get('authorization')
+        token = token_header[6:]
+        if token:
+            g.user = User.verify_auth_token(token)
+            if g.user.is_meeter() or g.user.is_admin():
+                return f(*args, **kwargs)
+            else:
+                abort(403)
+    return decorator
 
 
 """

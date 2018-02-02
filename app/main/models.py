@@ -5,15 +5,70 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, Signatur
 from config import BaseConfig
 
 
+class Permission:
+    """
+    权限表
+    ADMINISTRATOR 超级管理人员 工作人员访问
+    MEETER 创建会议的用户
+    USER 普通用户
+    """
+    __tablename__ = 'permission'
+    USER = 0x01
+    MEETER = 0x02
+    ADMINISTRATOR = 0xff
+
+
+class Role(db.Model):
+    __tablename__ = 'role'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64))
+    default = db.Column(db.Boolean, default=False, index=True)
+    permissions = db.Column(db.Integer)
+    users = db.relationship('User', backref='role', lazy='dynamic')
+
+    @staticmethod
+    def insert_roles():
+        roles = {
+            'User': (Permission.USER, True),
+            'Admin': (Permission.MEETER | Permission.USER, False),
+            'ADMINISTRATOR': (Permission.ADMINISTRATOR, False)
+        }
+        """
+        | 按位或运算符：只要对应的二个二进位有一个为1时，结果位就为1。
+        & 按位与运算符：参与运算的两个值,如果两个相应位都为1,则该位的结果为1,否则为0
+        """
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+            role.permissions = roles[r][0]
+            role.default = roles[r][1]
+            db.session.add(role)
+        db.session.commit()
+
+    def __str__(self):
+        return "<Role {}>".format(self.name)
+
+    def __repr__(self):
+        return "<Role {}>".format(self.name)
+
+
 class User(db.Model):
     """
     会议的用户表和管理员表
-    id : 编号
-    username : 用户名
-    password : 密码
-    password_hash : 储存password的hash码
-    phone : 电话号码
-    company : 人员所属公司
+    id  编号
+    username  用户名
+    password  密码(不可见)
+    password_hash 储存password的hash码
+    email 仅一个
+    phone  电话号码 仅一个
+    company  人员所属公司
+    meets 关联的会议信息表
+    create_time 用户创建时间
+    msgs 关联 聊天记录
+    verify_password 验证密码
+    generate_auth_token 生成token
+    verify_auth_token 验证token
     """
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
@@ -27,6 +82,7 @@ class User(db.Model):
     meets = db.relationship('Meet', backref='users')
     create_time = db.Column(db.DateTime())
     msgs = db.relationship('ChatMessage', backref='users')
+    role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
 
     # ---password hash
     @property
@@ -57,6 +113,21 @@ class User(db.Model):
             return None  # invalid token
         user = User.query.get(data['id'])
         return user
+
+    def can(self, permission):
+        return self.role is not None and (self.role.permissions & permission) == permission
+
+    def is_meeter(self):
+        """
+        判断是否为会议的创建者 permissions == 3
+        """
+        return self.can(Permission.USER | Permission.MEETER)
+
+    def is_admin(self):
+        """
+        判断是否系统管理员 permissions == 255
+        """
+        return self.can(Permission.ADMINISTRATOR)
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
