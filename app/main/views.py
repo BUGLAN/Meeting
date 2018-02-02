@@ -104,10 +104,10 @@ class MeetAdmin(Resource):
     {
         "data" :{
             "name": "meeting name ",
+            passwrod :
             "start_time": "meeting start time",
-            "end_time": "meeting end time",
-            "allow_people": "any" or "just somebody",
-            "number": "max allow people"
+            "end_time": "meeting end time"
+            "meet_message"
         }
         "operation" : "new" or "delete" or "change" ---- Note' if change all people can get message'
     }
@@ -119,12 +119,12 @@ class MeetAdmin(Resource):
         self.parser.add_argument('operation', type=str, help="operation must be str type", required=True)
         self.data_parser = reqparse.RequestParser()
         self.data_parser.add_argument('name', type=str, help="name must be str type", location='data', required=True)
-        self.data_parser.add_argument('start_time', type=str, help="create_time must be str", location='data')
+        self.data_parser.add_argument('password', type=str, location='data',required=True)
+        self.data_parser.add_argument('start_time', type=str, help="create_time must be str", location='data', required=True)
         self.data_parser.add_argument('end_time', type=str, location='data', required=True)
-        self.data_parser.add_argument('allow_people', type=str, help="allow_people must be str type", location='data'
-                                      , required=True)
-        self.data_parser.add_argument('number', type=int, help="number must be int type", location='data'
-                                      , required=True)
+        self.data_parser.add_argument('meet_message', type=str, location='data', required=True)
+        # self.data_parser.add_argument('allow_people', type=str, help="allow_people must be str type", location='data' , required=True)
+        # self.data_parser.add_argument('number', type=int, help="number must be int type", location='data', required=True)
         super(MeetAdmin, self).__init__()
 
     decorators = [auth.login_required]
@@ -135,18 +135,33 @@ class MeetAdmin(Resource):
         if args['operation'] == 'new':
             meet = Meet(
                 name=data_args['name'],
-                password='123456'
+                password=data_args['password'],
+                start_time=data_args['start_time'],
+                end_time=data_args['end_time'],
+                meet_message=data_args['meet_message']
             )
             db.session.add(meet)
             db.session.commit()
             return jsonify({"id": meet.id, "name": meet.name, "username": g.user.username,
                             'start_time': meet.create_time.strftime('%Y-%m-%d %H:%M')})
         elif args['operation'] == 'delete':
-            return "delete Meeting"
+            meet = Meet.query.filter_by(name=data_args['name']).first_or_404()
+            if meet:
+                db.session.delete(meet)
+                db.session.commit()
+                return make_response(jsonify({"message": "success"}), 200)
         elif args['operation'] == 'change':
-            return "change Meeting"
-        else:
-            return make_response(jsonify({"error": "格式错误"}), 400)
+            meet = Meet.query.filter_by(name=data_args['name']).first_or_404()
+            if meet:
+                meet.name = data_args['name']
+                meet.password = data_args['password']
+                meet.start_time['start_time']
+                meet.end_time['end_time']
+                meet.meet_message = data_args['meet_message']
+                db.session.add(meet)
+                db.session.commit()
+                return make_response(jsonify({"message": "success"}), 200)
+        return make_response(jsonify({"error": "格式错误"}), 400)
 
 
 class ChatApi(Resource):
@@ -311,7 +326,7 @@ class HeadPortrait(Resource):
 class MeetUploadFile(Resource):
     """
     上传会议附件
-    目前仅能上传一个服务间
+    目前仅能上传一个附件
     """
     decorators = [auth.login_required]
 
@@ -361,17 +376,7 @@ class MeetDownLoadFile(Resource):
         else:
             abort(404)
 
-# @socketio.on('message')
-# def handle_message(message):
-#     print(request.json)
-#     send(message)
-#     return '1'
-#
-# @socketio.on('json')
-# def handle_json(json):
-#     print(request.json)
-#     send(json, json=True)
-#     return '1'
+
 
 
 

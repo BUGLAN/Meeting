@@ -2,29 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SocketTest</title>
+    <title>Title</title>
 </head>
 <body>
 <script src="https://cdn.bootcss.com/socket.io/2.0.4/socket.io.slim.js"></script>
 <script>
-
-
-    var socket = io.connect('http://127.0.0.1:5000/barrage');
+    var socket = io.connect('http://127.0.0.1:5000/ChatRoom');
     socket.emit('join', {
-        "username": "qwe",
-        "room": "东华理工"
+        "username": "qweree",
+        "room": "东华理工会议室"
     });
-    socket.emit('barrage', {
-        "username": "qwe",
-        "room": "东华理工",
-        "msg": "barrage success"
+    socket.emit('Chat', {
+        "username": "qweree",
+        "room": "东华理工会议室"
     });
     socket.on('response', function (data) {
         if (data.code == '200') {
             console.log(data.msg);
         }
     });
-
 </script>
 </body>
 </html>
